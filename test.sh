@@ -6,7 +6,7 @@
 # raycaster.c never call an SDL2 function), plus a headless smoke test
 # of the real binary.
 #
-# Copy this file and fixtures/map1.cub into your working directory,
+# Copy this file and fixtures/map1.map into your working directory,
 # build with 'make re', then run:
 #
 #   bash test.sh
@@ -93,11 +93,11 @@ fi
 
 # ── build the SDL2-free DDA tester ───────────────────────────────────────────
 
-if [[ ! -f "${FIXTURES}/map1.cub" ]]; then
-    fail "fixtures/map1.cub found" "keep the r03-the-raycaster clone alongside your working directory"
+if [[ ! -f "${FIXTURES}/map1.map" ]]; then
+    fail "fixtures/map1.map found" "keep the r03-the-raycaster clone alongside your working directory"
     exit 1
 fi
-cp "${FIXTURES}/map1.cub" "$WORK_DIR/map1.cub"
+cp "${FIXTURES}/map1.map" "$WORK_DIR/map1.map"
 
 cat > "$WORK_DIR/test_logic.c" <<'TESTC'
 #include <math.h>
@@ -146,13 +146,13 @@ int main(void)
     int         i;
     int         col;
 
-    if (!map_load(&map, "map1.cub"))
+    if (!map_load(&map, "map1.map"))
     {
         printf("FAIL  map_load\n");
         return (1);
     }
-    check_int("map1.cub has ten rows", map.rows, 10);
-    check_int("map1.cub has thirteen columns", map.cols, 13);
+    check_int("map1.map has ten rows", map.rows, 10);
+    check_int("map1.map has thirteen columns", map.cols, 13);
     check_int("(0,0) is a wall", map_is_wall(&map, 0, 0), 1);
     check_int("the marked start cell is open floor", map_is_wall(&map,
         (int)map.start_pos.x, (int)map.start_pos.y), 0);
@@ -249,7 +249,7 @@ fi
 
 echo
 echo "Running raycaster headless (2s)..."
-SDL_VIDEODRIVER=dummy timeout 2 ./raycaster "$FIXTURES/map1.cub"
+SDL_VIDEODRIVER=dummy timeout 2 ./raycaster "$FIXTURES/map1.map"
 rc_status=$?
 if [[ "$rc_status" -eq 124 ]]; then
     pass "raycaster runs its event loop for 2s without crashing"
