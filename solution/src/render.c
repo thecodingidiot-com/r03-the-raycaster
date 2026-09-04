@@ -60,12 +60,23 @@ static void draw_column(t_render *rd, int column, t_hit const *hit)
 {
     int         line_h;
     int         start_y;
+    float       perp_dist;
     SDL_Rect    src;
     SDL_Rect    dst;
 
-    line_h = (int)(WINDOW_H / hit->perp_dist);
-    if (line_h > WINDOW_H * 8)
-        line_h = WINDOW_H * 8;
+    /*
+    ** perp_dist can land arbitrarily close to zero (the camera
+    ** standing right against, or inside, a wall cell) -- dividing by
+    ** it unclamped produces a float too large for the (int) cast
+    ** below to represent, which C leaves undefined rather than
+    ** saturating. Floor perp_dist BEFORE the division, not the
+    ** result after: clamping line_h afterward is too late, the
+    ** undefined cast has already happened by then.
+    */
+    perp_dist = hit->perp_dist;
+    if (perp_dist < 1.0f / 8.0f)
+        perp_dist = 1.0f / 8.0f;
+    line_h = (int)(WINDOW_H / perp_dist);
     start_y = WINDOW_H / 2 - line_h / 2;
     src.x = (int)(hit->wall_x * (float)rd->tex_w);
     src.y = 0;
