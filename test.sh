@@ -210,6 +210,62 @@ int main(void)
     check_float_near("moving forward shortens perp_dist by the distance moved",
         hit.perp_dist, 6.5f, 0.01f);
 
+    /*
+     * Handedness. The map's y axis points down, so a player facing
+     * east has south on their right -- and the camera plane is built
+     * from that vector, so getting its sign wrong mirrors the entire
+     * screen rather than distorting it, which is exactly why nothing
+     * else in this file would notice.
+     *
+     * Asserted twice: once on the vector, once on a picture. The map
+     * below presses a wall against the NORTH side and leaves the south
+     * open, with the camera facing east -- north is then the player's
+     * LEFT, so the near wall must land in the left half of the screen.
+     */
+    camera_init(&cam, 1.5f, 2.5f, 0.0f);
+    check_float_near("facing east, right is south (+y), not north",
+        cam.right.y, 1.0f, 0.001f);
+    {
+        t_map   hall;
+        int     y;
+        int     x;
+        float   near_side = 0.0f;
+        float   far_side = 0.0f;
+        char const  *hrows[7] = {
+            "1111111111111", "1111111111111", "1000000000001",
+            "1000000000001", "1000000000001", "1000000000001",
+            "1111111111111"
+        };
+
+        hall.rows = 7;
+        hall.cols = 13;
+        y = 0;
+        while (y < 7)
+        {
+            x = 0;
+            while (x < 13)
+            {
+                hall.grid[y][x] = hrows[y][x];
+                x++;
+            }
+            hall.grid[y][13] = '\0';
+            y++;
+        }
+        camera_init(&cam, 1.5f, 2.5f, 0.0f);
+        col = 0;
+        while (col < WINDOW_W)
+        {
+            hit = raycaster_cast(&cam, &hall, col);
+            if (col < WINDOW_W / 4)
+                near_side += hit.perp_dist;
+            if (col >= WINDOW_W - WINDOW_W / 4)
+                far_side += hit.perp_dist;
+            col++;
+        }
+        check_int("the wall on the player's left renders on the left of the screen",
+            near_side < far_side, 1);
+    }
+
     printf("\n%d passed, %d failed\n", g_pass, g_fail);
     return (g_fail > 0);
 }

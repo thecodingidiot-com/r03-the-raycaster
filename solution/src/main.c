@@ -10,10 +10,17 @@
 
 static void handle_input(t_camera *cam, Uint8 const *keys)
 {
+    /*
+    ** Angle grows clockwise on a y-down map (east, south, west,
+    ** north), so turning left DECREASES it. These two were the wrong
+    ** way round, which cancelled the mirrored camera plane in
+    ** camera.c and made both look correct. Both are fixed; neither
+    ** now relies on the other.
+    */
     if (keys[SDL_SCANCODE_LEFT] || keys[SDL_SCANCODE_H])
-        camera_turn(cam, TURN_SPEED);
-    if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_L])
         camera_turn(cam, -TURN_SPEED);
+    if (keys[SDL_SCANCODE_RIGHT] || keys[SDL_SCANCODE_L])
+        camera_turn(cam, TURN_SPEED);
     if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_K])
         camera_move(cam, MOVE_SPEED);
     if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_J])
